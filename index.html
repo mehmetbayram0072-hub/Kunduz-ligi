@@ -225,7 +225,7 @@ await yoneticiKontrol();
 if(!yonetici){mesaj("Bu hesap yönetici değil.");return;}
 mesaj("Giriş başarılı!");
 }
-
+window.girisYap = girisYap;
 async function cikis(){
 await db.auth.signOut();
 await yoneticiKontrol();
