@@ -217,7 +217,9 @@ document.getElementById("giris").classList.toggle("hidden",!!user);
 }
 
 async function girisYap(){
-const {error}=await db.auth.signInWithPassword({email:email.value,password:sifre.value});
+const {error}=await db.auth.signInWithPassword({
+  email:document.getElementById("email").value,
+  password:document.getElementById("sifre").value});
 if(error){mesaj(error.message);return;}
 await yoneticiKontrol();
 if(!yonetici){mesaj("Bu hesap yönetici değil.");return;}
