@@ -1,0 +1,182 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kunduz Ligi</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b1220;color:white;font-family:Arial,sans-serif}
+header{text-align:center;padding:35px 15px;background:#14243a;border-bottom:3px solid #25d995}
+header h1{font-size:34px;margin:8px}
+header p{color:#25d995;font-weight:bold}
+nav{display:flex;justify-content:center;gap:8px;padding:15px;flex-wrap:wrap}
+button{background:#20344f;color:white;border:0;padding:12px 16px;border-radius:9px;font-weight:bold;cursor:pointer}
+button.active,.green{background:#25d995;color:#071b16}
+main{max-width:850px;margin:auto;padding:15px}
+.card{background:#14243a;padding:18px;border-radius:14px;margin-bottom:18px;border:1px solid #29415e}
+h2{color:#25d995}
+table{width:100%;border-collapse:collapse;text-align:center;font-size:13px}
+td,th{padding:12px 5px;border-bottom:1px solid #29415e}
+th{color:#25d995}
+input,select{width:100%;padding:12px;margin:6px 0 12px;background:#0b1220;color:white;border:1px solid #34506f;border-radius:8px}
+.section{display:none}.section.show{display:block}
+.match{padding:13px 5px;border-bottom:1px solid #29415e;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.score{color:#25d995;font-size:19px;font-weight:bold}
+small{color:#9fb4cc}
+</style>
+</head>
+<body>
+<header>
+<p>⚽ 2026 - 2027 SEZONU</p>
+<h1>🏆 KUNDUZ LİGİ</h1>
+<small>REKABETİN ADRESİ</small>
+</header>
+
+<nav>
+<button class="active" onclick="show('puan',this)">Puan Durumu</button>
+<button onclick="show('maclar',this)">Fikstür</button>
+<button onclick="show('yonetim',this)">Yönetim</button>
+</nav>
+
+<main>
+<section id="puan" class="section show">
+<div class="card">
+<h2>🏆 Puan Durumu</h2>
+<div id="tablo"></div>
+</div>
+</section>
+
+<section id="maclar" class="section">
+<div class="card">
+<h2>⚽ Maç Fikstürü</h2>
+<div id="fikstur"></div>
+</div>
+</section>
+
+<section id="yonetim" class="section">
+<div class="card">
+<h2>👥 Takım Ekle</h2>
+<input id="takim" placeholder="Takım adı">
+<button class="green" onclick="ekle()">Takım Ekle</button>
+<div id="takimlar"></div>
+</div>
+
+<div class="card">
+<h2>⚽ Maç Sonucu Gir</h2>
+<label>Ev sahibi</label>
+<select id="ev"></select>
+<label>Deplasman</label>
+<select id="dep"></select>
+<div style="display:flex;gap:10px">
+<input id="evgol" type="number" min="0" placeholder="Ev sahibi gol">
+<input id="depgol" type="number" min="0" placeholder="Deplasman gol">
+</div>
+<button class="green" onclick="sonuc()">Sonucu Kaydet</button>
+</div>
+
+<div class="card">
+<h2>📅 Otomatik Fikstür</h2>
+<p>Her takım diğer takımlarla 4 kez karşılaşır.</p>
+<button class="green" onclick="fiksturOlustur()">Fikstürü Oluştur</button>
+</div>
+</section>
+</main>
+
+<script>
+let veri=JSON.parse(localStorage.getItem("kunduz")||'{"takimlar":[],"maclar":[]}');
+
+function kaydet(){
+localStorage.setItem("kunduz",JSON.stringify(veri));
+guncelle();
+}
+
+function show(id,btn){
+document.querySelectorAll('.section').forEach(x=>x.classList.remove('show'));
+document.getElementById(id).classList.add('show');
+document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+btn.classList.add('active');
+}
+
+function ekle(){
+let ad=document.getElementById('takim').value.trim();
+if(!ad)return alert("Takım adını yaz!");
+if(veri.takimlar.includes(ad))return alert("Bu takım zaten var!");
+if(veri.takimlar.length>=6)return alert("Lig en fazla 6 takımlı!");
+veri.takimlar.push(ad);
+document.getElementById('takim').value="";
+kaydet();
+}
+
+function fiksturOlustur(){
+if(veri.takimlar.length!==6)return alert("Önce 6 takım eklemelisin!");
+if(veri.maclar.length)return alert("Fikstür zaten oluşturulmuş!");
+for(let tur=0;tur<4;tur++){
+for(let i=0;i<6;i++){
+for(let j=i+1;j<6;j++){
+let ev=tur%2===0?veri.takimlar[i]:veri.takimlar[j];
+let dep=tur%2===0?veri.takimlar[j]:veri.takimlar[i];
+veri.maclar.push({ev,dep,evgol:null,depgol:null});
+}
+}
+}
+kaydet();
+alert("60 maçlık fikstür oluşturuldu!");
+}
+
+function sonuc(){
+let ev=document.getElementById('ev').value;
+let dep=document.getElementById('dep').value;
+let a=document.getElementById('evgol').value;
+let b=document.getElementById('depgol').value;
+if(!ev||!dep||ev===dep)return alert("İki farklı takım seç!");
+if(a===""||b==="")return alert("İki takımın golünü de yaz!");
+if(Number(a)<0||Number(b)<0||!Number.isInteger(Number(a))||!Number.isInteger(Number(b)))return alert("Geçerli gol sayısı gir!");
+let mac=veri.maclar.find(m=>m.ev===ev&&m.dep===dep&&(m.evgol===null||m.evgol===undefined));
+if(!mac)return alert("Bu eşleşme için bekleyen maç bulunamadı. Önce fikstür oluştur!");
+mac.evgol=Number(a);
+mac.depgol=Number(b);
+document.getElementById('evgol').value="";
+document.getElementById('depgol').value="";
+kaydet();
+alert("Maç sonucu kaydedildi!");
+}
+
+function guncelle(){
+let puan=veri.takimlar.map(t=>({ad:t,o:0,g:0,b:0,m:0,av:0,p:0}));
+veri.maclar.forEach(m=>{
+if(m.evgol===null||m.evgol===undefined)return;
+let e=puan.find(t=>t.ad===m.ev),d=puan.find(t=>t.ad===m.dep);
+if(!e||!d)return;
+e.o++;d.o++;
+e.av+=m.evgol-m.depgol;
+d.av+=m.depgol-m.evgol;
+if(m.evgol>m.depgol){e.g++;e.p+=3;d.m++}
+else if(m.evgol<m.depgol){d.g++;d.p+=3;e.m++}
+else{e.b++;d.b++;e.p++;d.p++}
+});
+puan.sort((a,b)=>b.p-a.p||b.av-a.av);
+document.getElementById('tablo').innerHTML=
+'<table><tr><th>#</th><th>TAKIM</th><th>O</th><th>G</th><th>B</th><th>M</th><th>AV</th><th>P</th></tr>'+
+puan.map((t,i)=>`<tr><td>${i+1}</td><td>${t.ad}</td><td>${t.o}</td><td>${t.g}</td><td>${t.b}</td><td>${t.m}</td><td>${t.av}</td><td><b>${t.p}</b></td></tr>`).join('')+'</table>';
+
+document.getElementById('fikstur').innerHTML=veri.maclar.map((m,i)=>`
+<div class="match">
+<span>${m.ev}</span>
+<span class="score">${m.evgol===null||m.evgol===undefined?"- : -":m.evgol+" : "+m.depgol}</span>
+<span>${m.dep}</span>
+</div>`).join('')||"Henüz fikstür yok.";
+
+document.getElementById('takimlar').innerHTML=veri.takimlar.map(t=>"<p>🛡️ "+t+"</p>").join('');
+['ev','dep'].forEach(id=>{
+let s=document.getElementById(id),old=s.value;
+s.innerHTML=veri.takimlar.map(t=>`<option value="${t}">${t}</option>`).join('');
+if(veri.takimlar.includes(old))s.value=old;
+});
+}
+
+guncelle();
+</script>
+</body>
+</html>
