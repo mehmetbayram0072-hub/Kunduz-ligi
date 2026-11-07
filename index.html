@@ -5,178 +5,311 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kunduz Ligi</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#0b1220;color:white;font-family:Arial,sans-serif}
-header{text-align:center;padding:35px 15px;background:#14243a;border-bottom:3px solid #25d995}
-header h1{font-size:34px;margin:8px}
-header p{color:#25d995;font-weight:bold}
-nav{display:flex;justify-content:center;gap:8px;padding:15px;flex-wrap:wrap}
-button{background:#20344f;color:white;border:0;padding:12px 16px;border-radius:9px;font-weight:bold;cursor:pointer}
-button.active,.green{background:#25d995;color:#071b16}
-main{max-width:850px;margin:auto;padding:15px}
-.card{background:#14243a;padding:18px;border-radius:14px;margin-bottom:18px;border:1px solid #29415e}
-h2{color:#25d995}
-table{width:100%;border-collapse:collapse;text-align:center;font-size:13px}
-td,th{padding:12px 5px;border-bottom:1px solid #29415e}
-th{color:#25d995}
-input,select{width:100%;padding:12px;margin:6px 0 12px;background:#0b1220;color:white;border:1px solid #34506f;border-radius:8px}
-.section{display:none}.section.show{display:block}
-.match{padding:13px 5px;border-bottom:1px solid #29415e;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.score{color:#25d995;font-size:19px;font-weight:bold}
-small{color:#9fb4cc}
+body{margin:0;background:#080f1d;color:#f4f7fb;font-family:Arial,sans-serif}
+header{padding:25px 18px;background:linear-gradient(120deg,#123c37,#152b46)}
+header h1{margin:0;font-size:29px}
+header p{color:#b8d2ce}
+main{max-width:1000px;margin:auto;padding:18px}
+nav{display:flex;gap:8px;overflow:auto;margin-bottom:20px}
+button{background:#55e6a5;color:#07151a;border:0;border-radius:9px;padding:11px 15px;font-weight:bold;cursor:pointer}
+nav button{background:#1b2b40;color:white;white-space:nowrap}
+nav button.active{background:#55e6a5;color:#07151a}
+.card{background:#111e30;border:1px solid #293c55;border-radius:15px;padding:17px;margin-bottom:15px}
+h2{font-size:20px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:10px;border-bottom:1px solid #293c55;font-size:13px}
+th{color:#9db1c9}
+.green{color:#55e6a5;font-weight:bold}
+input,select,textarea{width:100%;padding:11px;margin:5px 0 12px;background:#091525;color:white;border:1px solid #344760;border-radius:8px}
+textarea{min-height:90px}
+.hidden{display:none}
+.item{background:#1a2a40;padding:13px;border-radius:10px;margin:9px 0}
+.small{color:#9db1c9;font-size:12px}
+@media(max-width:600px){header h1{font-size:24px}main{padding:12px}.card{padding:13px}}
 </style>
 </head>
 <body>
+
 <header>
-<p>⚽ 2026 - 2027 SEZONU</p>
 <h1>🏆 KUNDUZ LİGİ</h1>
-<small>REKABETİN ADRESİ</small>
+<p>Rekabetin adresi. Mücadele başlasın!</p>
 </header>
 
+<main>
 <nav>
-<button class="active" onclick="show('puan',this)">Puan Durumu</button>
-<button onclick="show('maclar',this)">Fikstür</button>
-<button onclick="show('yonetim',this)">Yönetim</button>
+<button class="active" onclick="sayfa('home',this)">Ana Sayfa</button>
+<button onclick="sayfa('puan',this)">Puan Durumu</button>
+<button onclick="sayfa('fikstur',this)">Fikstür</button>
+<button onclick="sayfa('gol',this)">Gol Krallığı</button>
+<button onclick="sayfa('haber',this)">Haberler</button>
+<button onclick="sayfa('admin',this)">Yönetici</button>
 </nav>
 
-<main>
-<section id="puan" class="section show">
+<section id="home">
+<div class="card">
+<h2>Kunduz Ligi'ne hoş geldin!</h2>
+<p>6 takım, 60 maç, tek şampiyon!</p>
+<p id="istatistik" class="green">Veriler yükleniyor...</p>
+</div>
+<div class="card">
+<h2>🏆 İlk 3</h2>
+<div id="ilk3"></div>
+</div>
+<div class="card">
+<h2>⚽ Son maçlar</h2>
+<div id="sonmaclar"></div>
+</div>
+</section>
+
+<section id="puan" class="hidden">
 <div class="card">
 <h2>🏆 Puan Durumu</h2>
-<div id="tablo"></div>
+<div style="overflow:auto">
+<table>
+<thead><tr><th>#</th><th>Takım</th><th>O</th><th>G</th><th>B</th><th>M</th><th>AV</th><th>P</th></tr></thead>
+<tbody id="puanTablo"></tbody>
+</table>
+</div>
 </div>
 </section>
 
-<section id="maclar" class="section">
+<section id="fikstur" class="hidden">
 <div class="card">
-<h2>⚽ Maç Fikstürü</h2>
-<div id="fikstur"></div>
+<h2>📅 Fikstür</h2>
+<div id="maclar"></div>
 </div>
 </section>
 
-<section id="yonetim" class="section">
+<section id="gol" class="hidden">
 <div class="card">
-<h2>👥 Takım Ekle</h2>
-<input id="takim" placeholder="Takım adı">
-<button class="green" onclick="ekle()">Takım Ekle</button>
-<div id="takimlar"></div>
+<h2>👑 Gol Krallığı</h2>
+<div id="golTablo"></div>
 </div>
+</section>
 
+<section id="haber" class="hidden">
 <div class="card">
-<h2>⚽ Maç Sonucu Gir</h2>
-<label>Ev sahibi</label>
-<select id="ev"></select>
-<label>Deplasman</label>
-<select id="dep"></select>
-<div style="display:flex;gap:10px">
-<input id="evgol" type="number" min="0" placeholder="Ev sahibi gol">
-<input id="depgol" type="number" min="0" placeholder="Deplasman gol">
+<h2>📰 Lig Haberleri</h2>
+<div id="haberler"></div>
 </div>
-<button class="green" onclick="sonuc()">Sonucu Kaydet</button>
-</div>
+</section>
 
+<section id="admin" class="hidden">
 <div class="card">
-<h2>📅 Otomatik Fikstür</h2>
-<p>Her takım diğer takımlarla 4 kez karşılaşır.</p>
-<button class="green" onclick="fiksturOlustur()">Fikstürü Oluştur</button>
+<h2>🔐 Yönetici Girişi</h2>
+<div id="giris">
+<input id="email" type="email" placeholder="E-posta">
+<input id="sifre" type="password" placeholder="Şifre">
+<button onclick="girisYap()">Giriş yap</button>
+</div>
+<div id="panel" class="hidden">
+<p class="green">Yönetici girişi başarılı!</p>
+<button onclick="cikis()">Çıkış yap</button>
+<hr>
+<h3>Takım ekle</h3>
+<input id="takimAdi" placeholder="Takım adı">
+<button onclick="takimEkle()">Takım ekle</button>
+<hr>
+<h3>Futbolcu ekle</h3>
+<input id="oyuncuAdi" placeholder="Futbolcu adı">
+<select id="oyuncuTakim"></select>
+<button onclick="oyuncuEkle()">Futbolcu ekle</button>
+<hr>
+<h3>Maç sonucu gir</h3>
+<select id="macSec"></select>
+<input id="evGol" type="number" min="0" placeholder="Ev sahibi gol">
+<input id="depGol" type="number" min="0" placeholder="Deplasman gol">
+<button onclick="macKaydet()">Sonucu kaydet</button>
+<hr>
+<h3>Gol ekle</h3>
+<select id="golOyuncu"></select>
+<input id="golSayi" type="number" min="1" value="1">
+<button onclick="golEkle()">Gol kaydet</button>
+<hr>
+<h3>Haber yayınla</h3>
+<input id="haberBaslik" placeholder="Haber başlığı">
+<textarea id="haberMetin" placeholder="Haber metni"></textarea>
+<button onclick="haberEkle()">Haberi yayınla</button>
+</div>
+<p id="mesaj" class="small"></p>
 </div>
 </section>
 </main>
 
 <script>
-let veri=JSON.parse(localStorage.getItem("kunduz")||'{"takimlar":[],"maclar":[]}');
+const URL="https://vywyhebxqsqxbmdykmvf.supabase.co";
+const KEY="sb_publishable_q-RcU7Du8wPB71sVyooMmg_WLN6WFUE";
+const db=supabase.createClient(URL,KEY);
 
-function kaydet(){
-localStorage.setItem("kunduz",JSON.stringify(veri));
-guncelle();
-}
+let takimlar=[],oyuncular=[],maclar=[],haberler=[],goller=[];
+let yonetici=false;
 
-function show(id,btn){
-document.querySelectorAll('.section').forEach(x=>x.classList.remove('show'));
-document.getElementById(id).classList.add('show');
-document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
-btn.classList.add('active');
-}
-
-function ekle(){
-let ad=document.getElementById('takim').value.trim();
-if(!ad)return alert("Takım adını yaz!");
-if(veri.takimlar.includes(ad))return alert("Bu takım zaten var!");
-if(veri.takimlar.length>=6)return alert("Lig en fazla 6 takımlı!");
-veri.takimlar.push(ad);
-document.getElementById('takim').value="";
-kaydet();
+function sayfa(id,btn){
+document.querySelectorAll("main section").forEach(x=>x.classList.add("hidden"));
+document.getElementById(id).classList.remove("hidden");
+document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+btn.classList.add("active");
 }
 
-function fiksturOlustur(){
-if(veri.takimlar.length!==6)return alert("Önce 6 takım eklemelisin!");
-if(veri.maclar.length)return alert("Fikstür zaten oluşturulmuş!");
-for(let tur=0;tur<4;tur++){
-for(let i=0;i<6;i++){
-for(let j=i+1;j<6;j++){
-let ev=tur%2===0?veri.takimlar[i]:veri.takimlar[j];
-let dep=tur%2===0?veri.takimlar[j]:veri.takimlar[i];
-veri.maclar.push({ev,dep,evgol:null,depgol:null});
+function mesaj(t){document.getElementById("mesaj").textContent=t;}
+
+async function verileriYukle(){
+const tablolar=["teams","players","matches","news","goals"];
+const cevaplar=await Promise.all(tablolar.map(t=>db.from(t).select("*")));
+for(let i=0;i<cevaplar.length;i++){
+if(cevaplar[i].error)throw cevaplar[i].error;
 }
-}
-}
-kaydet();
-alert("60 maçlık fikstür oluşturuldu!");
+[ takimlar,oyuncular,maclar,haberler,goller ]=cevaplar.map(x=>x.data||[]);
+ciz();
 }
 
-function sonuc(){
-let ev=document.getElementById('ev').value;
-let dep=document.getElementById('dep').value;
-let a=document.getElementById('evgol').value;
-let b=document.getElementById('depgol').value;
-if(!ev||!dep||ev===dep)return alert("İki farklı takım seç!");
-if(a===""||b==="")return alert("İki takımın golünü de yaz!");
-if(Number(a)<0||Number(b)<0||!Number.isInteger(Number(a))||!Number.isInteger(Number(b)))return alert("Geçerli gol sayısı gir!");
-let mac=veri.maclar.find(m=>m.ev===ev&&m.dep===dep&&(m.evgol===null||m.evgol===undefined));
-if(!mac)return alert("Bu eşleşme için bekleyen maç bulunamadı. Önce fikstür oluştur!");
-mac.evgol=Number(a);
-mac.depgol=Number(b);
-document.getElementById('evgol').value="";
-document.getElementById('depgol').value="";
-kaydet();
-alert("Maç sonucu kaydedildi!");
-}
-
-function guncelle(){
-let puan=veri.takimlar.map(t=>({ad:t,o:0,g:0,b:0,m:0,av:0,p:0}));
-veri.maclar.forEach(m=>{
-if(m.evgol===null||m.evgol===undefined)return;
-let e=puan.find(t=>t.ad===m.ev),d=puan.find(t=>t.ad===m.dep);
-if(!e||!d)return;
-e.o++;d.o++;
-e.av+=m.evgol-m.depgol;
-d.av+=m.depgol-m.evgol;
-if(m.evgol>m.depgol){e.g++;e.p+=3;d.m++}
-else if(m.evgol<m.depgol){d.g++;d.p+=3;e.m++}
-else{e.b++;d.b++;e.p++;d.p++}
+function puanlariHesapla(){
+let liste=takimlar.map(t=>({name:t.name,o:0,g:0,b:0,m:0,av:0,p:0}));
+maclar.filter(x=>x.played).forEach(x=>{
+let ev=liste.find(t=>t.name===x.home_team);
+let dep=liste.find(t=>t.name===x.away_team);
+if(!ev||!dep)return;
+let a=Number(x.home_score),b=Number(x.away_score);
+ev.o++;dep.o++;
+ev.av+=a-b;dep.av+=b-a;
+if(a>b){ev.g++;ev.p+=3;dep.m++;}
+else if(a<b){dep.g++;dep.p+=3;ev.m++;}
+else{ev.b++;dep.b++;ev.p++;dep.p++;}
 });
-puan.sort((a,b)=>b.p-a.p||b.av-a.av);
-document.getElementById('tablo').innerHTML=
-'<table><tr><th>#</th><th>TAKIM</th><th>O</th><th>G</th><th>B</th><th>M</th><th>AV</th><th>P</th></tr>'+
-puan.map((t,i)=>`<tr><td>${i+1}</td><td>${t.ad}</td><td>${t.o}</td><td>${t.g}</td><td>${t.b}</td><td>${t.m}</td><td>${t.av}</td><td><b>${t.p}</b></td></tr>`).join('')+'</table>';
-
-document.getElementById('fikstur').innerHTML=veri.maclar.map((m,i)=>`
-<div class="match">
-<span>${m.ev}</span>
-<span class="score">${m.evgol===null||m.evgol===undefined?"- : -":m.evgol+" : "+m.depgol}</span>
-<span>${m.dep}</span>
-</div>`).join('')||"Henüz fikstür yok.";
-
-document.getElementById('takimlar').innerHTML=veri.takimlar.map(t=>"<p>🛡️ "+t+"</p>").join('');
-['ev','dep'].forEach(id=>{
-let s=document.getElementById(id),old=s.value;
-s.innerHTML=veri.takimlar.map(t=>`<option value="${t}">${t}</option>`).join('');
-if(veri.takimlar.includes(old))s.value=old;
-});
+return liste.sort((a,b)=>b.p-a.p||b.av-a.av||a.name.localeCompare(b.name));
 }
 
-guncelle();
+function ciz(){
+let puan=puanlariHesapla();
+document.getElementById("puanTablo").innerHTML=puan.map((t,i)=>`<tr><td>${i+1}</td><td>${t.name}</td><td>${t.o}</td><td>${t.g}</td><td>${t.b}</td><td>${t.m}</td><td>${t.av}</td><td class="green">${t.p}</td></tr>`).join("");
+document.getElementById("ilk3").innerHTML=puan.slice(0,3).map((t,i)=>`<div class="item">${i+1}. ${t.name} — <b>${t.p} puan</b></div>`).join("")||"Henüz takım yok.";
+document.getElementById("istatistik").textContent=`${takimlar.length} takım · ${maclar.length} maç · ${maclar.filter(x=>x.played).length} oynanan maç`;
+document.getElementById("maclar").innerHTML=maclar.map(m=>`<div class="item">${m.home_team} <b>${m.played?m.home_score+" - "+m.away_score:"- : -"}</b> ${m.away_team}</div>`).join("")||"Henüz fikstür yok.";
+document.getElementById("sonmaclar").innerHTML=maclar.filter(m=>m.played).slice(-4).reverse().map(m=>`<div class="item">${m.home_team} ${m.home_score} - ${m.away_score} ${m.away_team}</div>`).join("")||"Henüz maç sonucu yok.";
+document.getElementById("haberler").innerHTML=[...haberler].reverse().map(h=>`<div class="item"><b>${guvenli(h.title)}</b><p>${guvenli(h.content)}</p></div>`).join("")||"Henüz haber yok.";
+
+let golMap={};
+goller.forEach(g=>{let k=g.player_name+"|"+g.team_name;golMap[k]=(golMap[k]||0)+Number(g.goal_count);});
+let golListe=Object.entries(golMap).map(([k,v])=>({ad:k.split("|")[0],takim:k.split("|")[1],gol:v})).sort((a,b)=>b.gol-a.gol);
+document.getElementById("golTablo").innerHTML=golListe.map((g,i)=>`<div class="item">${i+1}. ${guvenli(g.ad)} — ${guvenli(g.takim)} <b class="green">${g.gol} gol</b></div>`).join("")||"Henüz gol yok.";
+
+document.getElementById("oyuncuTakim").innerHTML=takimlar.map(t=>`<option value="${t.id}">${guvenli(t.name)}</option>`).join("");
+document.getElementById("macSec").innerHTML=maclar.map(m=>`<option value="${m.id}">${guvenli(m.home_team)} - ${guvenli(m.away_team)}</option>`).join("");
+document.getElementById("golOyuncu").innerHTML=oyuncular.map(p=>`<option value="${p.id}">${guvenli(p.name)} (${guvenli(p.team_name)})</option>`).join("");
+}
+
+function guvenli(s){
+return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+async function yoneticiKontrol(){
+const {data:{user}}=await db.auth.getUser();
+yonetici=false;
+if(user){
+const {data}=await db.from("admin_users").select("user_id").eq("user_id",user.id).maybeSingle();
+yonetici=!!data;
+}
+document.getElementById("panel").classList.toggle("hidden",!yonetici);
+document.getElementById("giris").classList.toggle("hidden",!!user);
+}
+
+async function girisYap(){
+const {error}=await db.auth.signInWithPassword({email:email.value,password:sifre.value});
+if(error){mesaj(error.message);return;}
+await yoneticiKontrol();
+if(!yonetici){mesaj("Bu hesap yönetici değil.");return;}
+mesaj("Giriş başarılı!");
+}
+
+async function cikis(){
+await db.auth.signOut();
+await yoneticiKontrol();
+mesaj("Çıkış yapıldı.");
+}
+
+async function takimEkle(){
+if(!yonetici)return;
+let name=takimAdi.value.trim();
+if(!name)return mesaj("Takım adı yaz.");
+if(takimlar.length>=6)return mesaj("En fazla 6 takım ekleyebilirsin.");
+const {error}=await db.from("teams").insert({name});
+if(error)return mesaj(error.message);
+takimAdi.value="";
+await verileriYukle();
+if(takimlar.length===6 && maclar.length===0)await fiksturOlustur();
+mesaj("Takım eklendi!");
+}
+
+async function fiksturOlustur(){
+let rows=[];
+for(let i=0;i<takimlar.length;i++){
+for(let j=i+1;j<takimlar.length;j++){
+for(let k=0;k<4;k++){
+rows.push({
+home_team:k%2===0?takimlar[i].name:takimlar[j].name,
+away_team:k%2===0?takimlar[j].name:takimlar[i].name,
+played:false
+});
+}
+}
+}
+const {error}=await db.from("matches").insert(rows);
+if(error)return mesaj(error.message);
+await verileriYukle();
+mesaj("60 maçlık fikstür oluşturuldu!");
+}
+
+async function oyuncuEkle(){
+if(!yonetici)return;
+let t=takimlar.find(x=>x.id==oyuncuTakim.value);
+if(!t||!oyuncuAdi.value.trim())return mesaj("Oyuncu adı ve takım gerekli.");
+const {error}=await db.from("players").insert({name:oyuncuAdi.value.trim(),team_name:t.name});
+if(error)return mesaj(error.message);
+oyuncuAdi.value="";
+await verileriYukle();
+mesaj("Futbolcu eklendi!");
+}
+
+async function macKaydet(){
+if(!yonetici)return;
+let id=macSec.value,a=Number(evGol.value),b=Number(depGol.value);
+if(!id||evGol.value===""||depGol.value===""||a<0||b<0||!Number.isInteger(a)||!Number.isInteger(b))return mesaj("Geçerli skor gir.");
+const {error}=await db.from("matches").update({home_score:a,away_score:b,played:true}).eq("id",id);
+if(error)return mesaj(error.message);
+await verileriYukle();
+mesaj("Maç sonucu kaydedildi!");
+}
+
+async function golEkle(){
+if(!yonetici)return;
+let p=oyuncular.find(x=>x.id==golOyuncu.value),n=Number(golSayi.value);
+if(!p||!Number.isInteger(n)||n<1)return mesaj("Futbolcu ve gol sayısı gerekli.");
+const {error}=await db.from("goals").insert({player_name:p.name,team_name:p.team_name,goal_count:n});
+if(error)return mesaj(error.message);
+await verileriYukle();
+mesaj("Gol kaydedildi!");
+}
+
+async function haberEkle(){
+if(!yonetici)return;
+let title=haberBaslik.value.trim(),content=haberMetin.value.trim();
+if(!title||!content)return mesaj("Başlık ve haber metni gerekli.");
+const {error}=await db.from("news").insert({title,content});
+if(error)return mesaj(error.message);
+haberBaslik.value="";haberMetin.value="";
+await verileriYukle();
+mesaj("Haber yayınlandı!");
+}
+
+async function baslat(){
+await yoneticiKontrol();
+await verileriYukle();
+db.auth.onAuthStateChange(()=>yoneticiKontrol());
+}
+baslat().catch(e=>{console.error(e);alert("Veriler yüklenemedi: "+e.message);});
 </script>
 </body>
 </html>
