@@ -307,11 +307,11 @@ mesaj("Haber yayınlandı!");
 }
 
 async function baslat(){
-await yoneticiKontrol();
-await verileriYukle();
-db.auth.onAuthStateChange(()=>yoneticiKontrol());
+  await yoneticiKontrol();
+  await verileriYukle();
 }
-baslat().catch(e=>{console.error(e);alert("Veriler yüklenemedi: "+e.message);});
-</script>
-</body>
-</html>
+
+baslat().catch(e=>{
+  console.error(e);
+  alert("Veriler yüklenemedi: "+e.message);
+});
